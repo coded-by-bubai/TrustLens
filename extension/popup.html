@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TrustLens Inspector</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="extension-container">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo-box">
+        <img src="logo.png" alt="TrustLens" class="extension-logo" />
+        <div>
+          <h1 class="brand-name">TrustLens</h1>
+          <span class="subtext">Digital Trust Intelligence</span>
+        </div>
+      </div>
+      <span id="backendStatusPill" class="status-pill">ONLINE</span>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button id="tabUrlBtn" class="tab-btn active">URL Inspector</button>
+      <button id="tabScamBtn" class="tab-btn">Scam NLP</button>
+      <button id="tabWeb3Btn" class="tab-btn">Web3 Verify</button>
+    </nav>
+
+    <!-- ================= TAB 1: URL INSPECTOR ================= -->
+    <div id="viewUrl" class="tab-view">
+      <!-- Target URL Card -->
+      <div class="target-card">
+        <div class="card-header-row">
+          <span class="label">ACTIVE TAB TARGET:</span>
+          <span id="httpsBadge" class="secure-tag">HTTPS</span>
+        </div>
+        <p id="targetUrl" class="url-text">Detecting active tab...</p>
+      </div>
+
+      <!-- In-Page Link Telemetry (Content Script Data) -->
+      <div id="pageLinkStats" class="link-telemetry-box">
+        <div class="telemetry-item">
+          <span class="t-label">Page Links</span>
+          <span id="statTotalLinks" class="t-val">--</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="t-label">External</span>
+          <span id="statExternalLinks" class="t-val">--</span>
+        </div>
+        <div class="telemetry-item">
+          <span class="t-label">Insecure HTTP</span>
+          <span id="statInsecureLinks" class="t-val text-amber">--</span>
+        </div>
+      </div>
+
+      <!-- Scan Button -->
+      <button id="scanBtn" class="primary-btn">
+        <span id="btnText">Run Security Analysis</span>
+      </button>
+
+      <!-- Results Card -->
+      <div id="resultsCard" class="results-card hidden">
+        <div class="risk-header">
+          <span id="riskBadge" class="badge">ANALYZING</span>
+          <div class="score-box">
+            <span class="score-label">RISK SCORE</span>
+            <span id="riskScore" class="score-num">--/100</span>
+          </div>
+        </div>
+
+        <div class="indicators-grid">
+          <div class="metric-box">
+            <span class="m-label">TLS Certificate:</span>
+            <span id="tlsStatus" class="m-val">--</span>
+          </div>
+          <div class="metric-box">
+            <span class="m-label">Headers Defense:</span>
+            <span id="headersGrade" class="m-val">--</span>
+          </div>
+          <div class="metric-box">
+            <span class="m-label">Threat Feeds:</span>
+            <span id="intelStatus" class="m-val">--</span>
+          </div>
+          <div class="metric-box">
+            <span class="m-label">DGA Entropy:</span>
+            <span id="entropyVal" class="m-val">--</span>
+          </div>
+        </div>
+
+        <p id="explanationText" class="explanation"></p>
+
+        <!-- Dynamic Indicators List -->
+        <div id="indicatorsContainer" class="indicators-list hidden">
+          <span class="sub-label">Detected Threat Indicators:</span>
+          <div id="indicatorsList" class="indicators-tags"></div>
+        </div>
+
+        <!-- Web3 Commitment & Proof Row -->
+        <div class="web3-meta">
+          <span class="web3-icon">⛓️</span>
+          <span id="web3Hash" class="hash-text">SHA-256: --</span>
+        </div>
+
+        <!-- 1-Click Commit On-Chain Button -->
+        <button id="commitWeb3Btn" class="secondary-btn">
+          <span>Commit Fingerprint to On-Chain Ledger</span>
+        </button>
+        <div id="commitSuccessBanner" class="success-banner hidden">
+          ✓ Recorded on ThreatRegistry.sol!
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= TAB 2: SCAM NLP ANALYZER ================= -->
+    <div id="viewScam" class="tab-view hidden">
+      <div class="form-group">
+        <label class="label">PASTE SUSPICIOUS TEXT / EMAIL / SMS:</label>
+        <textarea id="scamTextInput" rows="4" class="text-input" placeholder="e.g. 'URGENT: Your bank account will be suspended in 24 hours. Verify your credentials and OTP immediately at https://chase-auth-verification.com'"></textarea>
+      </div>
+
+      <button id="analyzeScamBtn" class="primary-btn">
+        <span id="scamBtnText">Analyze Message with AI NLP</span>
+      </button>
+
+      <div id="scamResultsCard" class="results-card hidden">
+        <div class="risk-header">
+          <span id="scamRiskBadge" class="badge">--</span>
+          <div class="score-box">
+            <span class="score-label">SCAM RISK</span>
+            <span id="scamRiskScore" class="score-num">--/100</span>
+          </div>
+        </div>
+
+        <div id="scamDistinctionBanner" class="distinction-note">
+          <span class="note-title">AI Fraud Evidence Distinction:</span>
+          <p id="scamRationale" class="note-body"></p>
+        </div>
+
+        <div class="entities-box">
+          <span class="sub-label">Extracted Entities:</span>
+          <div id="extractedEntities" class="entities-grid"></div>
+        </div>
+
+        <p id="scamSummary" class="explanation"></p>
+      </div>
+    </div>
+
+    <!-- ================= TAB 3: WEB3 VERIFIER ================= -->
+    <div id="viewWeb3" class="tab-view hidden">
+      <div class="form-group">
+        <label class="label">ENTER REPORT SHA-256 HASH:</label>
+        <input type="text" id="web3QueryInput" class="text-input-single" placeholder="e.g. 0x4a9d71c35b5bcf35260840a6..." />
+      </div>
+
+      <button id="verifyHashBtn" class="primary-btn">
+        <span id="verifyBtnText">Verify On-Chain Integrity</span>
+      </button>
+
+      <div id="web3ResultsCard" class="results-card hidden">
+        <div id="web3VerificationStatus" class="web3-status-box"></div>
+        
+        <div class="web3-details-list">
+          <div class="w3-row">
+            <span class="w3-label">Block Number:</span>
+            <span id="w3Block" class="w3-val">--</span>
+          </div>
+          <div class="w3-row">
+            <span class="w3-label">Threat Level:</span>
+            <span id="w3ThreatLevel" class="w3-val font-semibold">--</span>
+          </div>
+          <div class="w3-row">
+            <span class="w3-label">Dispute Count:</span>
+            <span id="w3Disputes" class="w3-val">0</span>
+          </div>
+          <div class="w3-row">
+            <span class="w3-label">Smart Contract:</span>
+            <span id="w3Contract" class="w3-val font-mono text-truncate">--</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Action -->
+    <footer class="footer">
+      <a href="http://localhost:5173" target="_blank" class="dashboard-link">
+        Open Full Enterprise Dashboard ↗
+      </a>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+# Databases
+*.db
+*.sqlite3
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node & Frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+dist/
+.env
+.env.local
+.DS_Store
+Thumbs.db
+

@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "TrustLens - Web Threat & Digital Trust Guard",
+  "version": "1.2.0",
+  "description": "Real-time AI-powered web threat detection, in-page link safety checking, message scam analysis, and Web3 cryptographic verification.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "contextMenus",
+    "scripting"
+  ],
+  "icons": {
+    "16": "logo.png",
+    "48": "logo.png",
+    "128": "logo.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "logo.png",
+    "default_title": "Inspect with TrustLens"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*",
+    "http://localhost:8000/*"
+  ]
+}
