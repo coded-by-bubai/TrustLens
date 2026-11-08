@@ -207,6 +207,23 @@ python -m pytest backend/tests -v
 
 ---
 
+## 🚀 1-Click Full-Stack Deployment on Vercel
+
+TrustLens is pre-configured to deploy **both the React frontend and FastAPI backend together on Vercel** under a single domain with zero configuration:
+
+1. Push your repository to GitHub: `git push origin main`
+2. Open **[vercel.com/new](https://vercel.com/new)** and import your repository.
+3. Keep the default settings (**Root Directory:** `./`, no environment variables required).
+4. Click **Deploy**!
+
+In ~1 minute, Vercel deploys your full-stack instance:
+- **React Web Dashboard:** `https://your-project.vercel.app/`
+- **FastAPI Backend & Health Check:** `https://your-project.vercel.app/api/health`
+- **Interactive Swagger Documentation:** `https://your-project.vercel.app/docs`
+- **Zero CORS Issues:** Frontend and Backend live on the exact same domain.
+
+---
+
 ## 🧪 Live Evaluation Benchmarks
 
 TrustLens includes a **1-Click Benchmark Test Bar** right at the top of the dashboard for instant demonstration:
