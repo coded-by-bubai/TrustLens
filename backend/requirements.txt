@@ -7,4 +7,4 @@ dnspython>=2.6.0
 tldextract>=5.1.0
 python-dotenv>=1.0.0
 pytest>=8.0.0
-
+mangum>=0.17.0

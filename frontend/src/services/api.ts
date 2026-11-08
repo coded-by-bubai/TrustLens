@@ -5,7 +5,11 @@ import type {
   PresetItem
 } from '../types';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) || 'http://127.0.0.1:8000';
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) ?? (
+  typeof window !== 'undefined' && window.location.hostname === 'localhost' && window.location.port === '5173'
+    ? 'http://127.0.0.1:8000'
+    : ''
+);
 
 export async function fetchPresets(): Promise<{ benign_cases: PresetItem[]; suspicious_cases: PresetItem[] }> {
   try {

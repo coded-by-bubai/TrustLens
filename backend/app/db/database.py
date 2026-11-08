@@ -4,10 +4,19 @@ import json
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 
-DB_FILE = os.environ.get("DATABASE_PATH", os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "trustlens.db"))
+def get_db_file_path() -> str:
+    env_path = os.environ.get("DATABASE_PATH")
+    if env_path:
+        return env_path
+    # On Vercel / AWS Lambda serverless runtimes, root is read-only; use writable /tmp
+    if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+        return "/tmp/trustlens.db"
+    return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "trustlens.db")
+
+DB_FILE = get_db_file_path()
 
 def get_connection():
-    conn = sqlite3.connect(DB_FILE)
+    conn = sqlite3.connect(get_db_file_path())
     conn.row_factory = sqlite3.Row
     return conn
 
