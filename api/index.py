@@ -20,3 +20,4 @@ try:
     handler = Mangum(app)
 except Exception:
     handler = app
+
