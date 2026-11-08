@@ -76,6 +76,16 @@ class SubmitIncidentRequest(BaseModel):
     supporting_evidence_refs: Optional[List[str]] = None
 
 # Endpoints
+@app.get("/")
+def root():
+    return {
+        "name": "TrustLens Security Intelligence Engine",
+        "version": "1.2.0",
+        "status": "operational",
+        "docs_url": "/docs",
+        "health_check": "/api/health"
+    }
+
 @app.get("/api/health")
 def health_check():
     return {
