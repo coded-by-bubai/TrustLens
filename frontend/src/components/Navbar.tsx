@@ -20,14 +20,9 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
               className="w-10 h-10 object-contain drop-shadow-sm transition-transform hover:scale-105"
             />
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-semibold text-lg text-white tracking-tight">
-                  TrustLens
-                </span>
-                <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">
-                  Security Intelligence
-                </span>
-              </div>
+              <span className="font-bold text-xl sm:text-2xl text-white tracking-tight block leading-tight">
+                TrustLens
+              </span>
               <p className="text-[11px] text-slate-400 hidden sm:block">
                 Web Threat Detection & Digital Trust Platform
               </p>
