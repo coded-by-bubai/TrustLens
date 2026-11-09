@@ -5,11 +5,22 @@ import type {
   PresetItem
 } from '../types';
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) ?? (
-  typeof window !== 'undefined' && window.location.hostname === 'localhost' && window.location.port === '5173'
-    ? 'http://127.0.0.1:8000'
-    : ''
-);
+const rawEnvUrl = (import.meta.env.VITE_API_BASE_URL as string)?.trim();
+function getApiBaseUrl(): string {
+  if (rawEnvUrl) {
+    let url = rawEnvUrl;
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = `https://${url}`;
+    }
+    return url.replace(/\/+$/, '');
+  }
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost' && window.location.port === '5173') {
+    return 'http://127.0.0.1:8000';
+  }
+  return '';
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export async function fetchPresets(): Promise<{ benign_cases: PresetItem[]; suspicious_cases: PresetItem[] }> {
   try {
@@ -40,8 +51,16 @@ export async function analyzeUrl(url: string): Promise<UrlAnalysisResponse> {
     body: JSON.stringify({ url })
   });
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.detail || 'Analysis request failed');
+    let errMsg = `Analysis request failed (${res.status} ${res.statusText})`;
+    try {
+      const errData = await res.json();
+      if (errData && errData.detail) {
+        errMsg = typeof errData.detail === 'string' ? errData.detail : JSON.stringify(errData.detail);
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errMsg);
   }
   return await res.json();
 }
@@ -53,8 +72,16 @@ export async function analyzeMessage(text: string): Promise<MessageAnalysisRespo
     body: JSON.stringify({ text })
   });
   if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.detail || 'Message analysis failed');
+    let errMsg = `Message analysis failed (${res.status} ${res.statusText})`;
+    try {
+      const errData = await res.json();
+      if (errData && errData.detail) {
+        errMsg = typeof errData.detail === 'string' ? errData.detail : JSON.stringify(errData.detail);
+      }
+    } catch {
+      // ignore
+    }
+    throw new Error(errMsg);
   }
   return await res.json();
 }
