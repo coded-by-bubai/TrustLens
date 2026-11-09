@@ -261,9 +261,34 @@ export interface OnChainCommitmentRecord {
   network: string;
 }
 
+export interface QrEvidenceItem {
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  code: string;
+  title: string;
+  description: string;
+  weight: number;
+}
+
+export interface QrAnalysisResponse {
+  payload: string;
+  payload_type: string;
+  quishing_category: string;
+  overall_risk: 'Clean' | 'Suspicious' | 'High Risk' | 'Confirmed Malicious';
+  risk_score: number;
+  evidence: QrEvidenceItem[];
+  details: Record<string, any>;
+  recommendations: string[];
+  sha256_hash: string;
+  web3_fingerprint?: {
+    report_hash: string;
+    smart_contract: string;
+    tamper_proof_status: string;
+  };
+}
+
 export interface PresetItem {
   id: string;
-  type: 'url' | 'message';
+  type: 'url' | 'message' | 'qr';
   name: string;
   value: string;
   description: string;

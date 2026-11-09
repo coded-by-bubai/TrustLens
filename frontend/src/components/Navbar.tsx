@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, Cpu, Database, Blocks } from 'lucide-react';
+import { ShieldAlert, Cpu, Database, Blocks, QrCode } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: string;
@@ -53,6 +53,18 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
             >
               <Cpu className="w-4 h-4" />
               <span>AI Scam Analysis</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('qr')}
+              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center space-x-1.5 ${
+                activeTab === 'qr'
+                  ? 'bg-blue-600 text-white shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+              }`}
+            >
+              <QrCode className="w-4 h-4" />
+              <span>QR Scanner</span>
             </button>
 
             <button

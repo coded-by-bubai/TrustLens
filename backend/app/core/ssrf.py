@@ -74,11 +74,12 @@ def validate_target_url(url: str) -> Tuple[bool, str, Optional[str]]:
             allowed, reason = is_ip_allowed(ip_str)
             if not allowed:
                 return False, cleaned_url, reason
-    except socket.gaierror:
-        # Domain cannot be resolved, but we still allow static syntax inspection
+    except (socket.gaierror, socket.herror, OSError):
+        # Domain cannot be resolved, offline demonstration host, or DNS throttled; allow static syntax inspection
         return True, cleaned_url, None
-    except Exception as e:
-        return False, cleaned_url, f"DNS resolution error: {str(e)}"
+    except Exception:
+        # Any other lookup error: still allow static heuristics to inspect typosquatting/entropy
+        return True, cleaned_url, None
 
     return True, cleaned_url, None
 

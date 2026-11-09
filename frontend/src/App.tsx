@@ -3,6 +3,7 @@ import { Navbar } from './components/Navbar';
 import { PresetBar } from './components/PresetBar';
 import { UrlScannerTab } from './components/UrlScannerTab';
 import { ScamAnalyzerTab } from './components/ScamAnalyzerTab';
+import { QrScannerTab } from './components/QrScannerTab';
 import { Web3RegistryTab } from './components/Web3RegistryTab';
 import { ThreatFeedTab } from './components/ThreatFeedTab';
 import { fetchPresets, analyzeUrl } from './services/api';
@@ -14,6 +15,7 @@ export const App: React.FC = () => {
   const [messageInput, setMessageInput] = useState<string>(
     'URGENT NOTICE: Your Chase account access has been restricted due to unauthorized login attempts. You must verify your credentials and OTP immediately at https://chase-auth-verification.com within 24 hours to prevent permanent closure.'
   );
+  const [qrInput, setQrInput] = useState<string>('');
   
   const [presets, setPresets] = useState<{ benign_cases: PresetItem[]; suspicious_cases: PresetItem[] }>({
     benign_cases: [],
@@ -52,6 +54,9 @@ export const App: React.FC = () => {
     } else if (preset.type === 'message') {
       setMessageInput(preset.value);
       setActiveTab('scam');
+    } else if (preset.type === 'qr') {
+      setQrInput(preset.value);
+      setActiveTab('qr');
     }
   };
 
@@ -88,6 +93,11 @@ export const App: React.FC = () => {
             messageInput={messageInput}
             setMessageInput={setMessageInput}
           />
+        )}
+
+        {/* Tab 3: QR Code Scam & Quishing Inspector */}
+        {activeTab === 'qr' && (
+          <QrScannerTab initialPayload={qrInput} />
         )}
 
         {/* Tab 3: Web3 Registry */}

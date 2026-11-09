@@ -15,6 +15,7 @@ from app.services.tls_analyzer import analyze_certificate_chain
 from app.services.header_scanner import inspect_security_headers
 from app.services.threat_intel import check_threat_intelligence
 from app.services.ai_scam_detector import analyze_message_content
+from app.services.qr_analyzer import analyze_qr_payload
 from app.services.threat_correlator import (
     record_investigation_incident,
     find_campaign_correlations,
@@ -51,6 +52,10 @@ class UrlAnalysisRequest(BaseModel):
 
 class MessageAnalysisRequest(BaseModel):
     text: str = Field(..., description="Suspicious email, SMS, or communication message text")
+
+class QrAnalysisRequest(BaseModel):
+    payload: str = Field(..., description="Decoded QR code text, URI, or URL content")
+    metadata: Optional[Dict[str, Any]] = None
 
 class Web3RegisterRequest(BaseModel):
     report_data: Dict[str, Any]
@@ -136,6 +141,13 @@ def get_test_presets():
                 "name": "Wikipedia Encyclopedia",
                 "value": "https://www.wikipedia.org",
                 "description": "Non-profit reference portal adhering to strict security baselines and verified benign reputation."
+            },
+            {
+                "id": "benign-4",
+                "type": "qr",
+                "name": "Verified Safety QR",
+                "value": "https://www.google.com/safety",
+                "description": "Legitimate security resource QR code resolving to an official, authenticated domain."
             }
         ],
         "suspicious_cases": [
@@ -166,6 +178,20 @@ def get_test_presets():
                 "name": "eMudhra Compromised CA Incident Demo",
                 "value": "https://emudhra-compromised-demo.bank-auth.com",
                 "description": "Demonstrates detection of distrusted / compromised CA certificate chains (eMudhra incident advisory scenario)."
+            },
+            {
+                "id": "suspicious-5",
+                "type": "qr",
+                "name": "Quishing Parking Meter Payment Sticker",
+                "value": "upi://pay?pa=scammer892@ybl&pn=City+Municipal+Parking+Authority&am=150.00&cu=INR",
+                "description": "Counterfeit parking meter QR sticker routing payments to a personal mule VPA instead of municipal authority."
+            },
+            {
+                "id": "suspicious-6",
+                "type": "qr",
+                "name": "Rogue Public Wi-Fi Honeypot QR",
+                "value": "WIFI:S:Free_Airport_HighSpeed_WiFi;T:nopass;P:;;",
+                "description": "Unencrypted rogue Evil Twin public hotspot configuration designed for credential interception."
             }
         ]
     }
@@ -369,6 +395,8 @@ async def analyze_url_endpoint(req: UrlAnalysisRequest):
 
     # Risk Classification Framework (Section 6)
     risk_score = min(100, risk_score)
+    has_critical = any(ind.get("severity") == "CRITICAL" for ind in all_indicators)
+    has_high = any(ind.get("severity") == "HIGH" for ind in all_indicators)
 
     if threat_intel_info.get("matched"):
         overall_risk = "Confirmed Malicious"
@@ -380,10 +408,15 @@ async def analyze_url_endpoint(req: UrlAnalysisRequest):
             "severity": "CRITICAL",
             "source": threat_intel_info.get("provider")
         })
-    elif risk_score >= 60:
+    elif has_critical or risk_score >= 60:
         overall_risk = "High Risk"
-    elif risk_score >= 25 or tls_info.get("status") in ["Suspicious", "Potentially Compromised"]:
+        risk_score = max(risk_score, 70)
+    elif has_high or risk_score >= 35:
+        overall_risk = "High Risk"
+        risk_score = max(risk_score, 60)
+    elif risk_score >= 15 or tls_info.get("status") in ["Suspicious", "Potentially Compromised"]:
         overall_risk = "Suspicious"
+        risk_score = max(risk_score, 25)
     elif not dns_info["dns_data"]["is_resolvable"] and not tls_info.get("has_tls"):
         overall_risk = "Inconclusive"
     else:
@@ -580,6 +613,49 @@ async def analyze_message_endpoint(req: MessageAnalysisRequest):
             risk_score=result["risk_score"],
             report_hash=canonical_hash,
             summary=result["summary"]
+        )
+    except Exception:
+        pass
+
+    return result
+
+@app.post("/api/analyze/qr")
+async def analyze_qr_endpoint(req: QrAnalysisRequest):
+    """
+    QR Code Scam & Quishing Detection:
+    Analyzes decoded QR code payloads across multiple threat vectors:
+    - Phishing URLs (Typosquatting, Homoglyphs, Shannon Entropy, Redirects)
+    - Payment QR tampering (UPI mule VPAs, fake merchant spoofing)
+    - Rogue Wi-Fi honeypots (Unencrypted Evil Twin APs)
+    - Sideloaded malicious APKs & executables
+    - Social engineering & plain-text prompts
+    """
+    if not req.payload or not req.payload.strip():
+        raise HTTPException(status_code=400, detail="QR code payload cannot be empty.")
+    
+    result = await analyze_qr_payload(req.payload)
+    
+    canonical_hash = "0x" + canonical_hash_report({
+        "overall_risk": result["overall_risk"],
+        "risk_score": result["risk_score"],
+        "quishing_category": result["quishing_category"],
+        "indicators": [e.get("code") for e in result.get("evidence", [])]
+    })
+    
+    result["web3_fingerprint"] = {
+        "report_hash": canonical_hash,
+        "smart_contract": DEFAULT_CONTRACT_ADDRESS,
+        "tamper_proof_status": "Ready for on-chain commitment"
+    }
+
+    try:
+        log_scan(
+            scan_type="qr",
+            target=req.payload[:120],
+            overall_risk=result["overall_risk"],
+            risk_score=result["risk_score"],
+            report_hash=canonical_hash,
+            summary=f"QR {result['quishing_category']} - Risk {result['overall_risk']} ({result['risk_score']}/100)"
         )
     except Exception:
         pass

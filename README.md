@@ -35,6 +35,12 @@ Most modern cyber threats don't attack computer code directly—they exploit hum
   - **Entity Extraction:** Automatically extracts embedded URLs, emails, phone numbers, and crypto wallet addresses (Bitcoin, Ethereum/EVM).
   - **Prompt Injection Defense:** Defends against adversarial override attempts in submitted text.
 
+- **📱 QR Code Scam & Quishing Inspector**
+  - **Fake Payment & Mule VPA Detection:** Flags tampered UPI / payment stickers routing funds to personal VPAs under fake municipal or merchant names.
+  - **Quishing / Cloaked Phishing Links:** Unmasks shortened URLs (`bit.ly`, `tinyurl`), typosquatted login portals, and direct APK/installer sideloading links.
+  - **Rogue Wi-Fi Honeypots:** Spots unencrypted Evil Twin network profiles (`WIFI:S:...;T:nopass;`) mimicking airports, hotels, and cafes.
+  - **Client-Side Decoding:** Decodes images via HTML5 Canvas + jsQR client-side with clipboard paste (`Ctrl+V`) support and zero image data leakage.
+
 - **⛓️ Web3 On-Chain Threat Registry**
   - **Decentralized Verification:** Anchors tamper-proof security reports to a Solidity smart contract (`ThreatRegistry.sol`).
   - **Strict Privacy Guarantee:** Personal data, emails, and raw URLs are **never sent to the blockchain**. Only canonical SHA-256 / Keccak-256 cryptographic fingerprints are recorded.
@@ -65,12 +71,13 @@ TrustLens/
 │   │   │   ├── header_scanner.py     # Passive defensive HTTP security headers
 │   │   │   ├── threat_intel.py       # URLhaus & PhishTank threat feeds
 │   │   │   ├── ai_scam_detector.py   # AI social engineering & prompt injection defense
+│   │   │   ├── qr_analyzer.py        # QR Quishing, payment tampering & rogue Wi-Fi analysis
 │   │   │   ├── threat_correlator.py  # Cross-incident campaign grouping
 │   │   │   └── web3_service.py       # Cryptographic hashing & on-chain commitments
 │   │   └── main.py                   # FastAPI REST API
 │   ├── requirements.txt              # Python backend dependencies
 │   └── tests/
-│       └── test_trustlens.py         # Automated pytest test suite (14 passing tests)
+│       └── test_trustlens.py         # Automated pytest test suite (15 passing tests)
 ├── contracts/
 │   └── ThreatRegistry.sol            # Solidity smart contract for on-chain integrity
 ├── frontend/                         # Modern React 19 + TypeScript + Tailwind CSS UI
@@ -80,6 +87,7 @@ TrustLens/
 │   │   │   ├── PresetBar.tsx         # 1-Click benchmark evaluation test cases
 │   │   │   ├── UrlScannerTab.tsx     # Deep URL & TLS inspection interface
 │   │   │   ├── ScamAnalyzerTab.tsx   # AI scam & text threat analyzer
+│   │   │   ├── QrScannerTab.tsx      # QR Code scam & Quishing detection interface
 │   │   │   ├── Web3RegistryTab.tsx   # Independent on-chain verifier & disputes
 │   │   │   └── ThreatFeedTab.tsx     # Campaign correlation & incident stream
 │   │   ├── services/api.ts

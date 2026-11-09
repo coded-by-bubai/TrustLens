@@ -15,16 +15,41 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+const CLOUD_API_BASE = 'https://trustlens-api-bytecoders.vercel.app';
+let API_BASE = 'http://127.0.0.1:8000';
+
+async function queryAnalyzeUrl(url) {
+  try {
+    const res = await fetch(`${API_BASE}/api/analyze/url`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    });
+    if (res.ok) return await res.json();
+  } catch (err) {
+    if (API_BASE !== CLOUD_API_BASE) {
+      try {
+        const cloudRes = await fetch(`${CLOUD_API_BASE}/api/analyze/url`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+        if (cloudRes.ok) {
+          API_BASE = CLOUD_API_BASE;
+          return await cloudRes.json();
+        }
+      } catch (e) {}
+    }
+  }
+  return null;
+}
+
 // Handle Context Menu clicks
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId === 'trustlens-inspect-link' && info.linkUrl) {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/analyze/url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: info.linkUrl })
-      });
-      const data = await response.json();
+      const data = await queryAnalyzeUrl(info.linkUrl);
+      if (!data) return;
       
       const badgeText = data.overall_risk === 'Confirmed Malicious' ? 'CRIT' :
                         data.overall_risk === 'High Risk' ? 'HIGH' :

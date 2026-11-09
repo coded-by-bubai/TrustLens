@@ -1,7 +1,8 @@
 // TrustLens Advanced Browser Extension Inspector
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const API_BASE = 'http://127.0.0.1:8000';
+  const CLOUD_API_BASE = 'https://trustlens-api-bytecoders.vercel.app';
+  let API_BASE = 'http://127.0.0.1:8000';
 
   // Navigation Tab Elements
   const tabUrlBtn = document.getElementById('tabUrlBtn');
@@ -89,17 +90,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       const res = await fetch(`${API_BASE}/api/health`);
       if (res.ok) {
-        backendStatusPill.textContent = 'ONLINE';
+        backendStatusPill.textContent = 'ONLINE (LOCAL)';
         backendStatusPill.classList.remove('offline');
-      } else {
-        throw new Error();
+        return;
       }
     } catch {
-      backendStatusPill.textContent = 'BACKEND OFFLINE';
-      backendStatusPill.classList.add('offline');
+      try {
+        const cloudRes = await fetch(`${CLOUD_API_BASE}/api/health`);
+        if (cloudRes.ok) {
+          API_BASE = CLOUD_API_BASE;
+          backendStatusPill.textContent = 'ONLINE (CLOUD)';
+          backendStatusPill.classList.remove('offline');
+          return;
+        }
+      } catch {}
     }
+    backendStatusPill.textContent = 'BACKEND OFFLINE';
+    backendStatusPill.classList.add('offline');
   }
   checkBackendHealth();
+
+  async function fetchApi(endpoint, options) {
+    try {
+      return await fetch(`${API_BASE}${endpoint}`, options);
+    } catch (e) {
+      if (API_BASE !== CLOUD_API_BASE) {
+        try {
+          const cloudRes = await fetch(`${CLOUD_API_BASE}${endpoint}`, options);
+          if (cloudRes) {
+            API_BASE = CLOUD_API_BASE;
+            return cloudRes;
+          }
+        } catch (err) {}
+      }
+      throw e;
+    }
+  }
 
   // 3. Detect Active Tab and In-Page Link Telemetry
   if (typeof chrome !== 'undefined' && chrome.tabs && chrome.tabs.query) {
@@ -153,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     commitSuccessBanner.classList.add('hidden');
 
     try {
-      const response = await fetch(`${API_BASE}/api/analyze/url`, {
+      const response = await fetchApi('/api/analyze/url', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: currentTabUrl })
@@ -224,7 +250,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     commitWeb3Btn.textContent = 'Transacting on EVM Contract...';
 
     try {
-      const response = await fetch(`${API_BASE}/api/web3/register`, {
+      const response = await fetchApi('/api/web3/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -260,7 +286,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     scamResultsCard.classList.add('hidden');
 
     try {
-      const response = await fetch(`${API_BASE}/api/analyze/message`, {
+      const response = await fetchApi('/api/analyze/message', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: text })
@@ -322,7 +348,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     web3ResultsCard.classList.add('hidden');
 
     try {
-      const response = await fetch(`${API_BASE}/api/web3/verify/${encodeURIComponent(hash)}`);
+      const response = await fetchApi(`/api/web3/verify/${encodeURIComponent(hash)}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const data = await response.json();
 
